@@ -1,0 +1,57 @@
+---
+layout: runbook
+title: '#4471 · three problems, not one'
+owner: dariuspuscas-byte
+status: open
+reviewed: 2026-10-31
+signature: dariuspuscas-byte
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const repo = 'https://github.com/dariuspuscas-byte/tickets-report/issues';
+  const filed = { parser: `${repo}/1`, hint: `${repo}/2`, 'one-day': `${repo}/3` };
+</script>
+
+[#4471](/kb/incidents/4471) was merged as one issue, *dates parse mm/dd in eu locales*, and marked
+known. Read report by report, it holds three problems. Each now has a ticket of its own.
+
+<Callout kind="warn">
+Fixing the parser closes only the first row. The other two keep coming in after the fix.
+</Callout>
+
+## What #4471 holds
+
+<ProblemTable ticket={4471} {filed} />
+
+## The three problems
+
+- **`parser`**: the shared parser reads every date month first, and every tenant on file writes
+  the day first. Any date with a day of 12 or less comes out with day and month swapped:
+  *7 April* goes out as *4 July*. This is the bug #4471 was opened for.
+- **`hint`**: tenants on `booking-v3` print `MM/DD/YYYY` under the form's date field. Their people
+  type the month first, as told, and the form reads the field day first. Only reports sent
+  through the form of a `booking-v3` tenant. The parser fix does not touch it.
+- **`one-day`**: the date moves by one day; day and month are not swapped. It depends on where the
+  reader is: *"Client in Lisbon got Tuesday. Client in Toronto got Monday."* A date-only value is
+  going through a timezone conversion. The desk listed these reports in its notes, then filed
+  them under the tenant's cause.
+
+## Why it looked like one
+
+- Intake tags a report from the reporter's **browser**; the cause depends on the **tenant**. Every
+  report from an en-US browser was tagged `hint`, wherever its tenant is.
+- [Decision 0001](/kb/decisions/0001-dedupe-by-subject) merges on the subject line. Every subject
+  here is some form of "wrong date", so three bugs went into one ticket.
+- The cause table on #4471 counts the one-day moves under `parser` and `hint`, and shows `hint` as
+  merged into the wrong ticket, while the page above it says one issue, one fix.
+
+## What to do
+
+- Track each problem on its own ticket (links in the table), not on #4471.
+- Place reports by tenant and what the body shows, not by intake tag or subject.
+
+<RenderStamp {signature} />
